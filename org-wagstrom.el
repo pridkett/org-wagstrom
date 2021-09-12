@@ -3,6 +3,7 @@
 ;; Copyright (c) 2021 Patrick Wagstrom <patrick@wagstrom.net>
 ;; Licensed under terms of the MIT License
 
+(provide 'org-wagstrom)
 (require 'ido-completing-read+)
 (ido-ubiquitous-mode 1)
 
@@ -37,6 +38,7 @@
   "#+DATE: <" (format-time-string "%Y-%m-%d %a %H:%M %Z") ">\n"
   "\n"
   "* Background\n"
+  (org-id-get-create) "\n"
   "- *Company:* \n"
   "- *Role:* \n"
   "- *Start Date:* \n"
@@ -55,6 +57,8 @@
   "#+TAGS: meeting\n"
   "#+DATE: <" (format-time-string "%Y-%m-%d %a %H:%M %Z") ">\n"
   "\n"
+  "* Context\n"
+  (org-id-get-create) "\n"
   "* Attendees\n"
   "\n"
   "* Take Aways\n"
@@ -73,6 +77,16 @@
 
 (define-key minibuffer-local-completion-map (kbd "SPC") 'self-insert-command)
 (define-key ido-common-completion-map " " 'self-insert-command)
+
+(defun org-id-get-id-from-file (file)
+  "Gets the ID out of a file"
+  (interactive)
+  (with-temp-buffer
+    (insert-file-contents file)
+    (goto-char (point-min))
+    (setq outid (org-id-get))
+    )
+  outid)
 
 ;; helper function to get the list of people that have defined files
 ;; already in org-mode. This is use primarily so we can get completion
@@ -95,7 +109,6 @@
     (completing-read "Person Name: " (org-get-person-files) nil nil)))
   (progn
     (setq person-file-name (format org-person-file-name person-name))
-    (setq person-link-text (format "[[file:%s][%s]]" person-file-name person-name))
     (setq working-buffer (current-buffer))
     (if (not (file-exists-p person-file-name))
 	(progn
@@ -114,6 +127,8 @@
 	  (kill-buffer newBuf)
 	  ))
     (set-buffer working-buffer)
+    ;; (setq person-link-text (format "[[file:%s][%s]]" person-file-name person-name))
+    (setq person-link-text (format "[[id:%s][%s]]" (org-id-get-id-from-file person-file-name) person-name))
     (insert person-link-text)))
 
 
