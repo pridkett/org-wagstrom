@@ -190,11 +190,9 @@ do not already have one."
   (save-buffer)
   (org-map-entries 'org-id-get-create)
   ;; this blob saves the cursor, goes to the beginning, and creates an id for the org file if needed
-  (setq current-point (point))
-  (goto-char (point-min))
-  (org-id-get-create)
-  (goto-char current-point)
-  )
+  (save-exursion
+   (goto-char (point-min))
+   (org-id-get-create)))
 (add-hook 'org-mode-hook
           (lambda ()
             (add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local)))
