@@ -180,3 +180,22 @@
   (with-current-buffer (find-file filename)
     (org-meeting-skeleton meeting-name-with-date))
   )
+
+
+;; see: https://stackoverflow.com/a/16247032/57626
+(defun my/org-add-ids-to-headlines-in-file ()
+  "Add ID properties to all headlines in the current file which
+do not already have one."
+  (interactive)
+  ;; we need to save twice because otherwise we sometimes get "Non-existent agenda file" errors
+  (save-buffer)
+  (org-map-entries 'org-id-get-create)
+  ;; this blob saves the cursor, goes to the beginning, and creates an id for the org file if needed
+  (setq current-point (point))
+  (goto-char (point-min))
+  (org-id-get-create)
+  (goto-char current-point)
+  )
+(add-hook 'org-mode-hook
+          (lambda ()
+            (add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local)))
