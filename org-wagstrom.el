@@ -190,7 +190,8 @@
 do not already have one."
   (interactive)
   ;; we need to save twice because otherwise we sometimes get "Non-existent agenda file" errors
-  (save-buffer)
+  (if (not (file-exists-p (buffer-file-name)))
+      (save-buffer))
   (org-map-entries 'org-id-get-create)
   ;; this blob saves the cursor, goes to the beginning, and creates an id for the org file if needed
   (save-excursion
