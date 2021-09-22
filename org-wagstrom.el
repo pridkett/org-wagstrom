@@ -60,7 +60,7 @@
   "\n"
   "* Attendees\n"
   "\n"
-  "* Take Aways\n"
+  "* Take Aways - " str "\n"
   "\n"
   "* Notes\n"
   )
