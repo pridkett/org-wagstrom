@@ -155,8 +155,11 @@
 		" - "
 		meeting-name))
   (setq meeting-short-filename
-	(concat meeting-name-with-date
-		".org"))  
+	(replace-regexp-in-string
+	 (f-path-separator)
+	 ""
+	 (concat meeting-name-with-date
+		".org")))
   (setq filename
 	(concat
 	 (file-name-as-directory org-directory)
