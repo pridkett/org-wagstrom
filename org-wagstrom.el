@@ -16,6 +16,13 @@
 (defvar org-person-regexp "^Person - \\(.*\\).org$"
   "Regular expression glob for finding person files")
 
+(defvar org-company-file-name "~/org/Company - %s.org"
+  "The default structure for an org file referring to a specific company")
+
+(defvar org-company-regexp "^Company - \\(.*\\).org$"
+  "Regular expression glob for finding company files")
+
+
 ;; org mode meeting support
 (defvar org-create-meeting-list-file (concat (file-name-as-directory org-directory) "meeting_notes.org")
   "The file that contains the list of all proevious meetings")
@@ -28,6 +35,28 @@
             "images")))
   "The directory that will store all of the images pasted into org-mode notes")
 
+(define-skeleton org-company-skeleton
+  "Creates a basic skeleton for a company"
+  nil
+  "#+TITLE: " str "\n"
+  "#+STARTUP: showall\n"
+  "#+CATEGORY: company\n"
+  "#+TAGS: company\n"
+  "#+DATE: " (progn (org-insert-time-stamp nil "HH:MM" t) nil) "\n"
+  "\n"
+  "* Background\n"
+  "- *URL:* \n"
+  "- *Category:* \n"
+  "- *Primary Contact:* \n"
+  "- *Funding:* \n"
+  "- *Valuation:* \n"
+  "- *CrunchBase URL:* \n"
+  "\n"
+  "* People\n"
+  "\n"
+  "* Meeting History\n"
+  )
+
 (define-skeleton org-person-skeleton
   "Creates a basic skeleton for a person"
   nil
@@ -35,7 +64,7 @@
   "#+STARTUP: showall\n"
   "#+CATEGORY: person\n"
   "#+TAGS: person\n"
-  "#+DATE: <" (format-time-string "%Y-%m-%d %a %H:%M %Z") ">\n"
+  "#+DATE: " (progn (org-insert-time-stamp nil "HH:MM" t) nil) "\n"
   "\n"
   "* Background\n"
   "- *Company:* \n"
@@ -54,7 +83,7 @@
   "#+STARTUP: showall\n"
   "#+CATEGORY: meeting\n"
   "#+TAGS: meeting\n"
-  "#+DATE: <" (format-time-string "%Y-%m-%d %a %H:%M %Z") ">\n"
+  "#+DATE: " (progn (org-insert-time-stamp nil "HH:MM" t) nil) "\n"
   "\n"
   "* Context\n"
   "\n"
@@ -90,14 +119,49 @@
 ;; helper function to get the list of people that have defined files
 ;; already in org-mode. This is use primarily so we can get completion
 ;; when using org-insert-person
-(defun org-get-person-files ()
+(defun org-get-regexp-files (file-dir file-regexp)
   (progn
     (setq rv ())
-    (setq df (directory-files org-directory))
+    (setq df (directory-files file-dir))
     (dolist (elem df rv)
-      (if (string-match org-person-regexp elem)
+      (if (string-match file-regexp elem)
 	  (setq rv (cons (match-string 1 elem) rv))))
     (sort rv #'string-collate-lessp)))
+  
+(defun org-get-person-files ()
+  (org-get-regexp-files org-directory org-person-regexp))
+
+(defun org-get-company-files ()
+  (org-get-regexp-files org-directory org-company-regexp))
+
+(defun org-insert-entity (link-file-name link-text body-func body-args)
+  "Generalized wrapper function for inserting entities in org-mode"
+  (interactive)
+  (progn
+    (setq working-buffer (current-buffer))
+    (if (not (file-exists-p link-file-name))
+	(progn
+	  (setq new-buf-name " org-insert-entity-tempbuffer")
+	  (setq new-buf (generate-new-buffer new-buf-name))
+	  (set-buffer new-buf)
+	  (funcall body-func body-args)
+	  (write-file link-file-name)
+	  (write-file link-file-name)
+	  (kill-buffer new-buf)))
+    (set-buffer working-buffer)
+    (setq entity-link-text (format "[[id:%s][%s]]" (org-id-get-id-from-file link-file-name) link-text))
+    (insert entity-link-text)))
+
+(defun org-insert-company (company-name)
+  "Inserts a link to a company document.
+  COMPANY-NAME should be the full ame of the person to create a link to.
+  If the document for COMPANY-NAME does not exist then it is created."
+  (interactive
+   (list
+    (completing-read "Company Name: " (org-get-company-files) nil nil)))
+  (setq company-file-name (format org-company-file-name company-name))
+  (org-insert-entity company-file-name company-name #'(lambda (str) (org-company-skeleton str)) company-name))
+
 
 (defun org-insert-person (person-name)
   "Inserts a link to a person document.
@@ -106,29 +170,8 @@
   (interactive
    (list
     (completing-read "Person Name: " (org-get-person-files) nil nil)))
-  (progn
-    (setq person-file-name (format org-person-file-name person-name))
-    (setq working-buffer (current-buffer))
-    (if (not (file-exists-p person-file-name))
-	(progn
-	  ;; name for new buffer. If start with space, undo is disabled
-	  (setq newBufName " org-insert-person-tempbuffer")
-
-	  ;; create a new buffer, save it to a var, so later you can switch to it or kill it
-	  (setq newBuf (generate-new-buffer newBufName))
-	  
-	  ;; make it current (but does not make it visible), so all insert etc operations works on it.
-	  (set-buffer newBuf)
-	  (org-person-skeleton person-name)
-	  ;; like “Save As”. Save current buffer, close it, and open the new saved
-	  (write-file person-file-name)	  
-	  ;; close it
-	  (kill-buffer newBuf)
-	  ))
-    (set-buffer working-buffer)
-    ;; (setq person-link-text (format "[[file:%s][%s]]" person-file-name person-name))
-    (setq person-link-text (format "[[id:%s][%s]]" (org-id-get-id-from-file person-file-name) person-name))
-    (insert person-link-text)))
+  (setq person-file-name (format org-person-file-name person-name))
+  (org-insert-entity person-file-name person-name #'(lambda (str) (org-person-skeleton str)) person-name))
 
 
 (defun org-insert-image ()
