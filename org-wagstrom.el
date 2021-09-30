@@ -190,13 +190,16 @@
 do not already have one."
   (interactive)
   ;; we need to save twice because otherwise we sometimes get "Non-existent agenda file" errors
-  (if (not (file-exists-p (buffer-file-name)))
-      (save-buffer))
-  (org-map-entries 'org-id-get-create)
+  ;; we can't just check if the file exists, beacuse that will result in infinite recursion.
+  ;; instead, we check to see if it's got an id already.
+  (if (file-exists-p (buffer-file-name))
+      (progn
+	(save-excursion
+	  (goto-char (point-min))
+	  (org-id-get-create))
+
+	(org-map-entries 'org-id-get-create))))
   ;; this blob saves the cursor, goes to the beginning, and creates an id for the org file if needed
-  (save-excursion
-   (goto-char (point-min))
-   (org-id-get-create)))
 
 (add-hook 'org-mode-hook
           (lambda ()
