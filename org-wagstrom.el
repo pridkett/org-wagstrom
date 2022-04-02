@@ -174,12 +174,22 @@
   (org-insert-entity person-file-name person-name #'(lambda (str) (org-person-skeleton str)) person-name))
 
 
+(defun org-wagstrom-save-image-from-clipboard (filename)
+  "Saves an image from the clipboard to a specific path
+  FILENAME should be the destination filename for the image."
+  (interactive)
+  (if (file-exists-p "/usr/local/bin/pngpaste")
+      (shell-command (concat "/usr/local/bin/pngpaste \"" file-name-with-path "\"") nil nil))
+  (if (file-exists-p "/home/pwagstro/.local/bin/save_image_from_clipboard")
+      (shell-command (concat "/home/pwagstro/.local/bin/save_image_from_clipboard \"" file-name-with-path "\"") nil nil)))
+
+
 (defun org-insert-image ()
   "Pastes an image into a file and then links the image in org-mode"
   (interactive)
   (setq file-name (concat (format-time-string "%Y%m%d %H%M%s") " - " (buffer-name) ".png"))
   (setq file-name-with-path (concat org-image-directory file-name))
-  (shell-command (concat "/usr/local/bin/pngpaste \"" file-name-with-path "\"") nil nil)
+  (org-wagstrom-save-image-from-clipboard file-name-with-path)
   (insert "#+CAPTION: Your_Caption_Here")
   (newline)
   (insert "#+ATTR_ORG: :width 500") 
