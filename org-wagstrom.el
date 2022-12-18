@@ -1,6 +1,6 @@
 ;; Patrick Wagstrom's Custom org-mode Functions
 ;;
-;; Copyright (c) 2021 Patrick Wagstrom <patrick@wagstrom.net>
+;; Copyright (c) 2022 Patrick Wagstrom <patrick@wagstrom.net>
 ;; Licensed under terms of the MIT License
 
 (provide 'org-wagstrom)
@@ -94,7 +94,6 @@
   "* Notes\n"
   )
 
-
 ;; override spacebar in the mini buffer, I don't use it for completion
 ;; that often and it breaks the ability to use spaces in people's names.
 ;;
@@ -173,7 +172,6 @@
   (setq person-file-name (format org-person-file-name person-name))
   (org-insert-entity person-file-name person-name #'(lambda (str) (org-person-skeleton str)) person-name))
 
-
 (defun org-wagstrom-save-image-from-clipboard (filename)
   "Saves an image from the clipboard to a specific path
   FILENAME should be the destination filename for the image."
@@ -198,8 +196,6 @@
   (newline)
   )
 
-
- 
 ;; TODO this should check to see if the meeting already exists and, if so, just open it
 (defun org-create-meeting (meeting-name)
   (interactive "sMeeting Name:")
@@ -236,7 +232,6 @@
     (org-meeting-skeleton meeting-name-with-date))
   )
 
-
 ;; see: https://stackoverflow.com/a/16247032/57626
 (defun my/org-add-ids-to-headlines-in-file ()
   "Add ID properties to all headlines in the current file which
@@ -254,6 +249,11 @@ do not already have one."
 	(org-map-entries 'org-id-get-create))))
   ;; this blob saves the cursor, goes to the beginning, and creates an id for the org file if needed
 
-(add-hook 'org-mode-hook
-          (lambda ()
-            (add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local)))
+
+;; disabled this function because it was causing my org-roam setup
+;; to get really full of crap. That's way more than I needed. Rather,
+;; I'll stick with adding headings when they're needed
+
+;;(add-hook 'org-mode-hook
+;;          (lambda ()
+;;            (add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local)))
