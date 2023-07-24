@@ -12,7 +12,7 @@ This is my helper library for org-mode that contains a number of custom function
 #+begin_src emacs-lisp
 ;; Patrick Wagstrom's Custom org-mode Functions
 ;;
-;; Copyright (c) 2022 Patrick Wagstrom <patrick@wagstrom.net>
+;; Copyright (c) 2022-2023 Patrick Wagstrom <patrick@wagstrom.net>
 ;; Licensed under terms of the MIT License
 #+end_src
 
@@ -20,10 +20,10 @@ This is my helper library for org-mode that contains a number of custom function
 
 In reality, this _probably_ doesn't need =ido-completing-read+=. In fact, my normal =config.org= file manages to include this anyway.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :results no
 (provide 'org-wagstrom)
-(require 'ido-completing-read+)
-(ido-ubiquitous-mode 1)
+;; (require 'ido-completing-read+)
+;; (ido-ubiquitous-mode 1)
 #+end_src
 
 ** TODO check to see if I need to to have =ido-completing-read+= included here.
@@ -133,17 +133,20 @@ In general, this currently covers three different types of entities:
 
 This is just a collection of other configuration tweaks that I've found to be necessary for me to really enjoy using org-mode and managing all of my files.
 
-#+begin_src emacs-lisp
-;; override spacebar in the mini buffer, I don't use it for completion
-;; that often and it breaks the ability to use spaces in people's names.
-;;
-;; see: https://emacs.stackexchange.com/a/19831/29014
-;;      https://stackoverflow.com/a/17476486/57626
-;;
-;; for IDO mode see: https://github.com/emacs-mirror/emacs/blob/222d033254e1c0c918f3dec523517f3192bc7086/lisp/ido.el#L211-L214
+#+begin_src emacs-lisp :results silent
+  ;; override spacebar in the mini buffer, I don't use it for completion
+  ;; that often and it breaks the ability to use spaces in people's names.
+  ;;
+  ;; see: https://emacs.stackexchange.com/a/19831/29014
+  ;;      https://stackoverflow.com/a/17476486/57626
+  ;;
+  ;; for IDO mode see: https://github.com/emacs-mirror/emacs/blob/222d033254e1c0c918f3dec523517f3192bc7086/lisp/ido.el#L211-L214
 
-(define-key minibuffer-local-completion-map (kbd "SPC") 'self-insert-command)
-(define-key ido-common-completion-map " " 'self-insert-command)
+  (define-key minibuffer-local-completion-map (kbd "SPC") 'self-insert-command)
+  (if (and (boundp 'ido-common-completion-map) (keymapp ido-common-completion-map))
+
+      (define-key ido-common-completion-map " " 'self-insert-command)
+    (message "keymap ido-common-completion-map is undefined - make sure ido-completing-read+ is installed"))
 #+end_src
 
 #+begin_src emacs-lisp
