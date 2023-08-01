@@ -18,15 +18,11 @@ This is my helper library for org-mode that contains a number of custom function
 
 * Required Libraries
 
-In reality, this _probably_ doesn't need =ido-completing-read+=. In fact, my normal =config.org= file manages to include this anyway.
+In a past life, this included =ido-completing-read+=, but I don't think I need that and including it here just ended up causing some needless challenges around how do I figure out what package manager is use, etc.
 
 #+begin_src emacs-lisp :results no
 (provide 'org-wagstrom)
-;; (require 'ido-completing-read+)
-;; (ido-ubiquitous-mode 1)
 #+end_src
-
-** TODO check to see if I need to to have =ido-completing-read+= included here.
 
 * Configuration Variables
 
