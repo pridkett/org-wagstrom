@@ -146,72 +146,76 @@ This is just a collection of other configuration tweaks that I've found to be ne
 #+end_src
 
 #+begin_src emacs-lisp
-(defun org-id-get-id-from-file (file)
-  "Gets the ID out of a file"
-  (interactive)
-  (with-temp-buffer
-    (insert-file-contents file)
-    (goto-char (point-min))
-    (setq outid (org-id-get))
-    )
-  outid)
+  (defun org-id-get-id-from-file (file)
+    "Gets the ID out of a file"
+    (interactive)
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (setq outid (org-id-get))
+      )
+    outid)
 
-;; helper function to get the list of people that have defined files
-;; already in org-mode. This is use primarily so we can get completion
-;; when using org-insert-person
-(defun org-get-regexp-files (file-dir file-regexp)
-  (progn
-    (setq rv ())
-    (setq df (directory-files file-dir))
-    (dolist (elem df rv)
-      (if (string-match file-regexp elem)
-	  (setq rv (cons (match-string 1 elem) rv))))
-    (sort rv #'string-collate-lessp)))
-  
-(defun org-get-person-files ()
-  (org-get-regexp-files org-directory org-person-regexp))
+  ;; helper function to get the list of people that have defined files
+  ;; already in org-mode. This is use primarily so we can get completion
+  ;; when using org-insert-person
+  (defun org-get-regexp-files (file-dir file-regexp)
+    (progn
+      (setq rv ())
+      (setq df (directory-files file-dir))
+      (dolist (elem df rv)
+        (if (string-match file-regexp elem)
+            (setq rv (cons (match-string 1 elem) rv))))
+      (sort rv #'string-collate-lessp)))
 
-(defun org-get-company-files ()
-  (org-get-regexp-files org-directory org-company-regexp))
+  (defun org-get-person-files ()
+    (org-get-regexp-files org-directory org-person-regexp))
 
-(defun org-insert-entity (link-file-name link-text body-func body-args)
-  "Generalized wrapper function for inserting entities in org-mode"
-  (interactive)
-  (progn
-    (setq working-buffer (current-buffer))
-    (if (not (file-exists-p link-file-name))
-	(progn
-	  (setq new-buf-name " org-insert-entity-tempbuffer")
-	  (setq new-buf (generate-new-buffer new-buf-name))
-	  (set-buffer new-buf)
-	  (funcall body-func body-args)
-	  (write-file link-file-name)
-	  (write-file link-file-name)
-	  (kill-buffer new-buf)))
-    (set-buffer working-buffer)
-    (setq entity-link-text (format "[[id:%s][%s]]" (org-id-get-id-from-file link-file-name) link-text))
-    (insert entity-link-text)))
+  (defun org-get-company-files ()
+    (org-get-regexp-files org-directory org-company-regexp))
 
-(defun org-insert-company (company-name)
-  "Inserts a link to a company document.
-  COMPANY-NAME should be the full ame of the person to create a link to.
-  If the document for COMPANY-NAME does not exist then it is created."
-  (interactive
-   (list
-    (completing-read "Company Name: " (org-get-company-files) nil nil)))
-  (setq company-file-name (format org-company-file-name company-name))
-  (org-insert-entity company-file-name company-name #'(lambda (str) (org-company-skeleton str)) company-name))
+  (defun org-insert-entity (link-file-name link-text body-func body-args)
+    "Generalized wrapper function for inserting entities in org-mode"
+    (interactive)
+    (progn
+      (setq working-buffer (current-buffer))
+      (if (not (file-exists-p link-file-name))
+          (progn
+            (setq new-buf-name " org-insert-entity-tempbuffer")
+            (setq new-buf (generate-new-buffer new-buf-name))
+            (set-buffer new-buf)
+            (funcall body-func body-args)
+            (write-file link-file-name)
+            ;; goto the first character
+            (goto-char (point-min))
+            ;; insert the org-id
+            (org-id-get-create)
+            (write-file link-file-name)
+            (kill-buffer new-buf)))
+      (set-buffer working-buffer)
+      (setq entity-link-text (format "[[id:%s][%s]]" (org-id-get-id-from-file link-file-name) link-text))
+      (insert entity-link-text)))
+
+  (defun org-insert-company (company-name)
+    "Inserts a link to a company document.
+    COMPANY-NAME should be the full ame of the person to create a link to.
+    If the document for COMPANY-NAME does not exist then it is created."
+    (interactive
+     (list
+      (completing-read "Company Name: " (org-get-company-files) nil nil)))
+    (setq company-file-name (format org-company-file-name company-name))
+    (org-insert-entity company-file-name company-name #'(lambda (str) (org-company-skeleton str)) company-name))
 
 
-(defun org-insert-person (person-name)
-  "Inserts a link to a person document.
-  PERSON-NAME should be the full ame of the person to create a link to.
-  If the document for PERSON-NAME does not exist then it is created."
-  (interactive
-   (list
-    (completing-read "Person Name: " (org-get-person-files) nil nil)))
-  (setq person-file-name (format org-person-file-name person-name))
-  (org-insert-entity person-file-name person-name #'(lambda (str) (org-person-skeleton str)) person-name))
+  (defun org-insert-person (person-name)
+    "Inserts a link to a person document.
+    PERSON-NAME should be the full ame of the person to create a link to.
+    If the document for PERSON-NAME does not exist then it is created."
+    (interactive
+     (list
+      (completing-read "Person Name: " (org-get-person-files) nil nil)))
+    (setq person-file-name (format org-person-file-name person-name))
+    (org-insert-entity person-file-name person-name #'(lambda (str) (org-person-skeleton str)) person-name))
 #+end_src
 
 * Image support
